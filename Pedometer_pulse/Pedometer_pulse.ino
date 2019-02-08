@@ -1,9 +1,11 @@
-//author: Fikrat Bayramli    https://github.com/fbayramli
+//author: Fikrat Bayramli		https://github.com/fbayramli
 
 //Description:
 //This project meauseres step counts and heart beats per minute and transmits over Bluetooth. 
 //Heart rate is only measured when arduino receives '1' over Bluetooth.
 
+ 
+/***************************************---Bluetooth library----*********************************************************/
 
 #include <SoftwareSerial.h>
 SoftwareSerial BTserial(2, 3); //Bluetooth RX/TX pins
@@ -42,210 +44,210 @@ int steps=0, flag = 0;
 
 /*************************************----Setup----***********************************************************************/
 
-void setup()
-{  
-  BTserial.begin(9600);
-  //Serial.begin(9600);
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0;
-  }
-  //calibrate();
+void setup(){	
+
+	BTserial.begin(9600);
+	//Serial.begin(9600);
+	for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+		readings[thisReading] = 0;
+	}
+	//calibrate();
 }
 
 /*****************************************----Main----**************************************************************/
 
-void loop()
-{  
-  calcSteps();
-  //delay(1000);
+void loop(){ 
+ 
+	calcSteps();
+	//delay(1000);
 
-  if (BTserial.available()){
-    
-    char val = BTserial.read();
-      if (val=='1')
-      {
-       calcPulse();
-       val=0;
-      }
-    }
+	if (BTserial.available()){
+		
+		char val = BTserial.read();
+		
+		if (val=='1'){
+			calcPulse();
+			val=0;
+		}
+	}
 }
 
 /***********************************-----calcPulse()-------**********************************************************/
 
-void calcPulse()
- {
-  count = 0;
-  while (true) {
+void calcPulse(){
+	
+	count = 0;
+	while (true) {
 
-    calcSignal();
-    newData = average;
+		calcSignal();
+		newData = average;
 
-    while (true) {
+		while (true) {
 
-      if (newData > border) {
+			if (newData > border) {
 
-        oldData = newData;
-        calcSignal();
-        newData = average;
+				oldData = newData;
+				calcSignal();
+				newData = average;
 
-        if (newData < border && oldData > border) {
+				if (newData < border && oldData > border){
 
-          count += 1;
-          T[count - 1] = millis();
+					count += 1;
+					T[count - 1] = millis();
 
-          if (count > 1) {
-			bpm = 60000 * (count - 1) / (T[count - 1] - T[0]);
-            
-			BTserial.print("bpm= ");
-			BTserial.println(bpm);
+					if (count > 1) {
+						
+						bpm = 60000 * (count - 1) / (T[count - 1] - T[0]);
+					
+						BTserial.print("bpm= ");
+						BTserial.println(bpm);
 
-			// Serial.print("bpm= ");
-			//Serial.println(bpm);
-          }
-        }
-      } else break;
-    }
-
-    if (count == 21)
-      break;
-  }
-  
-  BTserial.println("------------------------------------------------------- ");
-  BTserial.print("Final bpm= ");
-  BTserial.println(bpm);
-  BTserial.println("------------------------------------------------------- ");
-/*
-  Serial.println("------------------------------------------------------- ");
-  Serial.print("Final bpm= ");
-  Serial.println(bpm);
-  Serial.println("------------------------------------------------------- ");
-  */
- }
+						// Serial.print("bpm= ");
+						//Serial.println(bpm);
+					}
+				}
+			} 
+			else break;
+		}
+		if (count == 21) break;
+	}
+	
+	BTserial.println("------------------------------------------------------- ");
+	BTserial.print("Final bpm= ");
+	BTserial.println(bpm);
+	BTserial.println("------------------------------------------------------- ");
+	
+	/*
+	Serial.println("------------------------------------------------------- ");
+	Serial.print("Final bpm= ");
+	Serial.println(bpm);
+	Serial.println("------------------------------------------------------- ");
+	*/
+}
  
 /***********************************-----calcSignal()------- smoothing/normalizing**********************************************************/
 
 void calcSignal() {
-  // subtract the last reading:
-  total = total - readings[readIndex];
-  // read from the sensor:
-  readings[readIndex] = analogRead(pulsePin);
-  // add the reading to the total:
-  total = total + readings[readIndex];
-  // advance to the next position in the array:
-  readIndex = readIndex + 1;
+	// subtract the last reading:
+	total = total - readings[readIndex];
+	// read from the sensor:
+	readings[readIndex] = analogRead(pulsePin);
+	// add the reading to the total:
+	total = total + readings[readIndex];
+	// advance to the next position in the array:
+	readIndex = readIndex + 1;
 
-  // if we're at the end of the array...
-  if (readIndex >= numReadings) {
-    // ...wrap around to the beginning:
-    readIndex = 0;
-  }
+	// if we're at the end of the array...
+	if (readIndex >= numReadings) {
+		// ...wrap around to the beginning:
+		readIndex = 0;
+	}
 
-  // calculate the average:
-  average = total / numReadings;
-  // send it to the computer as ASCII digits
-  //Serial.println(average);
-  delay(5); // delay in between reads for stability
+	// calculate the average:
+	average = total / numReadings;
+	// send it to the computer as ASCII digits
+	//Serial.println(average);
+	delay(5); // delay in between reads for stability
 }
 
 /*****************************************---Steps---*********************************************************/
 
 void calcSteps()
 {
-  int acc = 0;
-  float totvect[100] = {0};
-  float totave[100] = {0};
-
-  float xaccl[100] = {0};
-  float yaccl[100] = {0};
-  float zaccl[100] = {0};
-
-  for (int a = 0; a < 100; a++)
-  {
-    xaccl[a] = float(analogRead(xpin) - 345);
-    delay(1);
-
-    yaccl[a] = float(analogRead(ypin) - 346);
-    delay(1);
-
-    zaccl[a] = float(analogRead(zpin) - 416);
-    delay(1);
-
-    // inital acc readings compared to calibrated avg readings
-    totvect[a] = sqrt(((xaccl[a] - xavg) * (xaccl[a] - xavg)) + ((yaccl[a] - yavg) * (yaccl[a] - yavg)) + ((zval[a] - zavg) * (zval[a] - zavg)));
-
-    //cal of acceleration vector: http://physics.stackexchange.com/questions/41653/how-do-i-get-the-total-acceleration-from-3-axes
-    totave[a] = (totvect[a] + totvect[a - 1]) / 2 ;
-
-    delay(100);
-
-    //cal steps
-    if (totave[a] > threshhold && flag == 0)
-    {
-      steps = steps + 1;
-      flag = 1;
-    }
+	int acc = 0;
 	
-    else if (totave[a] > threshhold && flag == 1)
-    {
-      // nothing happens
-    }
-	
-    if (totave[a] < threshhold   && flag == 1)
-    {
-      flag = 0;
-    }
-	
-    if (steps < 1) {
-      steps = 1;      
-    }
-    BTserial.print("steps: ");
-    BTserial.println(steps - 1);
+	float totvect[100] = {0};
+	float totave[100] = {0};
 
-    //Serial.print("steps: ");
-    //Serial.println(steps - 1);
-  }
+	float xaccl[100] = {0};
+	float yaccl[100] = {0};
+	float zaccl[100] = {0};
 
-  delay(1000);    
+	for (int a = 0; a < 100; a++)
+	{
+		xaccl[a] = float(analogRead(xpin) - 345);
+		delay(1);
+
+		yaccl[a] = float(analogRead(ypin) - 346);
+		delay(1);
+
+		zaccl[a] = float(analogRead(zpin) - 416);
+		delay(1);
+
+		// inital acc readings compared to calibrated avg readings
+		totvect[a] = sqrt(((xaccl[a] - xavg) * (xaccl[a] - xavg)) + ((yaccl[a] - yavg) * (yaccl[a] - yavg)) + ((zval[a] - zavg) * (zval[a] - zavg)));
+
+		//cal of acceleration vector: http://physics.stackexchange.com/questions/41653/how-do-i-get-the-total-acceleration-from-3-axes
+		totave[a] = (totvect[a] + totvect[a - 1]) / 2 ;
+
+		delay(100);
+
+		//cal steps
+		if (totave[a] > threshhold && flag == 0)
+		{
+			steps = steps + 1;
+			flag = 1;
+		}
+	
+		else if (totave[a] > threshhold && flag == 1)
+		{
+			// nothing happens
+		}
+	
+		if (totave[a] < threshhold	 && flag == 1)
+		{
+			flag = 0;
+		}
+	
+		if (steps < 1) {
+			steps = 1;			
+		}
+		
+		BTserial.print("steps: ");
+		BTserial.println(steps - 1);
+
+		//Serial.print("steps: ");
+		//Serial.println(steps - 1);
+	}
+	delay(1000);		
 }
 
 /*****************************************----Calibrate----****************************************************/
 
 void calibrate()
 {
-  float sum = 0;
-  float sum1 = 0;
-  float sum2 = 0;
+	float sum = 0;
+	float sum1 = 0;
+	float sum2 = 0;
 
-  for (int i = 0; i < 100; i++) {
-    xval[i] = float(analogRead(xpin) - 345);
-    sum = xval[i] + sum;
-  }
+	for (int i = 0; i < 100; i++) {
+		
+		xval[i] = float(analogRead(xpin) - 345);
+		sum = xval[i] + sum;
+	}
 
-  delay(100);
-  xavg = sum / 100.0;
+	delay(100);
+	xavg = sum / 100.0;
 
-  Serial.println(xavg);
+	Serial.println(xavg);
 
-  for (int j = 0; j < 100; j++)
-  {
-    yval[j] = float(analogRead(ypin) - 346);
-    sum1 = yval[j] + sum1;
-  }
-  yavg = sum1 / 100.0;
+	for (int j = 0; j < 100; j++){
+		
+		yval[j] = float(analogRead(ypin) - 346);
+		sum1 = yval[j] + sum1;
+	}
+	yavg = sum1 / 100.0;
 
-  Serial.println(yavg);
-  delay(100);
-  
-  for (int q = 0; q < 100; q++)
-  {
-    zval[q] = float(analogRead(zpin) - 416);
-    sum2 = zval[q] + sum2;
-  }
-  
-  zavg = sum2 / 100.0;
-  delay(100);
-  Serial.println(zavg);
-
+	Serial.println(yavg);
+	delay(100);
+	
+	for (int q = 0; q < 100; q++){
+		
+		zval[q] = float(analogRead(zpin) - 416);
+		sum2 = zval[q] + sum2;
+	}
+	
+	zavg = sum2 / 100.0;
+	delay(100);
+	Serial.println(zavg);
 }
-
-
