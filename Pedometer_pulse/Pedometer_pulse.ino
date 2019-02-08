@@ -1,5 +1,11 @@
+//author: Fikrat Bayramli    https://github.com/fbayramli
+//Description:
+//This project meauseres step counts and heart beats per minute and transmits over Bluetooth. 
+//Heart rate is only measured when arduino receives '1' over Bluetooth.
+
+
 #include <SoftwareSerial.h>
-SoftwareSerial BTserial(2, 3);
+SoftwareSerial BTserial(2, 3); //Bluetooth RX/TX pins
 
 /*****************************************---Pins----************************************************************/
 const int xpin = A5; //accelerometer 
@@ -122,7 +128,7 @@ void calcPulse()
  }
 
  
-/***********************************-----calcSignal()-------**********************************************************/
+/***********************************-----calcSignal()------- smoothing/normalizing**********************************************************/
 
 void calcSignal() {
   // subtract the last reading:
