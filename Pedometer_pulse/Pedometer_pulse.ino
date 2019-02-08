@@ -110,12 +110,12 @@ void calcPulse()
 
   }
   BTserial.println("------------------------------------------------------- ");
-  BTserial.print("Yekun bpm= ");
+  BTserial.print("Final bpm= ");
   BTserial.println(bpm);
   BTserial.println("------------------------------------------------------- ");
 /*
   Serial.println("------------------------------------------------------- ");
-  Serial.print("Yekun bpm= ");
+  Serial.print("Final bpm= ");
   Serial.println(bpm);
   Serial.println("------------------------------------------------------- ");
   */
