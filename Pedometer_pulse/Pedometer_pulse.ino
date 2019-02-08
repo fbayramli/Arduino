@@ -77,6 +77,7 @@ void loop(){
 void calcPulse(){
 	
 	count = 0;
+	
 	while (true) {
 
 		calcSignal();
