@@ -1,4 +1,5 @@
 //author: Fikrat Bayramli    https://github.com/fbayramli
+
 //Description:
 //This project meauseres step counts and heart beats per minute and transmits over Bluetooth. 
 //Heart rate is only measured when arduino receives '1' over Bluetooth.
@@ -42,8 +43,7 @@ int steps=0, flag = 0;
 /*************************************----Setup----***********************************************************************/
 
 void setup()
-{
-  
+{  
   BTserial.begin(9600);
   //Serial.begin(9600);
   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
@@ -56,7 +56,6 @@ void setup()
 
 void loop()
 {  
- 
   calcSteps();
   //delay(1000);
 
@@ -69,7 +68,6 @@ void loop()
        val=0;
       }
     }
-
 }
 
 /***********************************-----calcPulse()-------**********************************************************/
@@ -96,25 +94,22 @@ void calcPulse()
           T[count - 1] = millis();
 
           if (count > 1) {
-            bpm = 60000 * (count - 1) / (T[count - 1] - T[0]);
+			bpm = 60000 * (count - 1) / (T[count - 1] - T[0]);
             
-           BTserial.print("bpm= ");
-           BTserial.println(bpm);
+			BTserial.print("bpm= ");
+			BTserial.println(bpm);
 
-           // Serial.print("bpm= ");
-            //Serial.println(bpm);
+			// Serial.print("bpm= ");
+			//Serial.println(bpm);
           }
-
         }
-
       } else break;
-
     }
 
     if (count == 21)
       break;
-
   }
+  
   BTserial.println("------------------------------------------------------- ");
   BTserial.print("Final bpm= ");
   BTserial.println(bpm);
@@ -126,7 +121,6 @@ void calcPulse()
   Serial.println("------------------------------------------------------- ");
   */
  }
-
  
 /***********************************-----calcSignal()------- smoothing/normalizing**********************************************************/
 
@@ -165,17 +159,13 @@ void calcSteps()
   float yaccl[100] = {0};
   float zaccl[100] = {0};
 
-
-
   for (int a = 0; a < 100; a++)
   {
     xaccl[a] = float(analogRead(xpin) - 345);
     delay(1);
 
-
     yaccl[a] = float(analogRead(ypin) - 346);
     delay(1);
-
 
     zaccl[a] = float(analogRead(zpin) - 416);
     delay(1);
@@ -193,20 +183,20 @@ void calcSteps()
     {
       steps = steps + 1;
       flag = 1;
-
     }
+	
     else if (totave[a] > threshhold && flag == 1)
     {
       // nothing happens
     }
+	
     if (totave[a] < threshhold   && flag == 1)
     {
       flag = 0;
     }
-
+	
     if (steps < 1) {
-      steps = 1;
-      
+      steps = 1;      
     }
     BTserial.print("steps: ");
     BTserial.println(steps - 1);
@@ -227,10 +217,8 @@ void calibrate()
   float sum2 = 0;
 
   for (int i = 0; i < 100; i++) {
-
     xval[i] = float(analogRead(xpin) - 345);
     sum = xval[i] + sum;
-
   }
 
   delay(100);
@@ -241,19 +229,19 @@ void calibrate()
   for (int j = 0; j < 100; j++)
   {
     yval[j] = float(analogRead(ypin) - 346);
-
     sum1 = yval[j] + sum1;
   }
   yavg = sum1 / 100.0;
 
   Serial.println(yavg);
   delay(100);
+  
   for (int q = 0; q < 100; q++)
   {
     zval[q] = float(analogRead(zpin) - 416);
-
     sum2 = zval[q] + sum2;
   }
+  
   zavg = sum2 / 100.0;
   delay(100);
   Serial.println(zavg);
