@@ -237,6 +237,7 @@ void calibrate()
 		yval[j] = float(analogRead(ypin) - 346);
 		sum1 = yval[j] + sum1;
 	}
+	
 	yavg = sum1 / 100.0;
 
 	Serial.println(yavg);
